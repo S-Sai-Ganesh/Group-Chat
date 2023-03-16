@@ -15,7 +15,7 @@ function onSubmit(e) {
         .post('http://localhost:4000/user/signup', signupObject)
         .then((response) => {
             console.log(response.data.message);
-            alert(`User signup successful with email`);
+            alert(response.data.message);
             window.location.href = "../html/login.html";
         })
         .catch((err) => {
