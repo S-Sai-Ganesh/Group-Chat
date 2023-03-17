@@ -14,6 +14,7 @@ function onSubmit(e) {
     axios.post('http://localhost:4000/user/login', loginObject)
         .then((response) => {
             alert(response.data.message);
+            console.log(response.data.token);
         })
         .catch((err) => {
             console.log(err);
