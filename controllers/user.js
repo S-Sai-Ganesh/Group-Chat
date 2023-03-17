@@ -5,10 +5,10 @@ exports.postUser = async (req, res, next) => {
     try {
         const {name,email,password,number} = req.body;
 
-        const userExist = await User.findAll({where: {email}});
+        const userExist = await User.findOne({where: {email}});
         
         if(userExist){
-            res.status(207).json({ message: 'User already exist' });
+            res.status(207).json({ message: 'User already exist, Please Login' });
         } else {
             bcrypt.hash(password, 10, async (err, hash) => {
                 if(err) console.log(err);
