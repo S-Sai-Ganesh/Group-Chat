@@ -4,7 +4,7 @@ exports.getMessage = async (req,res,next)=>{
     try{
     const {id, name} = req.user;
 
-    const mesg = await Chat.findAll({where: {userId:id}});
+    const mesg = await Chat.findAll();
     res.status(200).json({mesg, name});
     } catch(error) {
         console.log(error);

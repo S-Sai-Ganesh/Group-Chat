@@ -15,6 +15,7 @@ function onSubmit(e) {
         .then((response) => {
             alert(response.data.message);
             localStorage.setItem('token',response.data.token);
+            localStorage.setItem('userId',response.data.userId);
             window.location.href='../html/chatApp.html';
         })
         .catch((err) => {

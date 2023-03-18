@@ -42,7 +42,9 @@ exports.postLogin = async (req, res, next) => {
                 if (result) {
                     res.status(200).json({ message: 'User logged in successfully', 
                     success: true, 
-                    token: generateAccessToken(userExist.dataValues.id, userExist.dataValues.name)});
+                    token: generateAccessToken(userExist.dataValues.id, userExist.dataValues.name),
+                    userId:userExist.dataValues.id
+                    })
                 } else {
                     res.status(401).json({ error: "User not authorized. Wrong password", success: false });
                 }
