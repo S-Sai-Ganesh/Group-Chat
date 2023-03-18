@@ -23,7 +23,7 @@ const User = sequelize.define('users', {
         allowNull: false
     },
     number: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         unique: true
     }

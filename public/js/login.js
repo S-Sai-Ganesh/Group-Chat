@@ -14,7 +14,8 @@ function onSubmit(e) {
     axios.post('http://localhost:4000/user/login', loginObject)
         .then((response) => {
             alert(response.data.message);
-            console.log(response.data.token);
+            localStorage.setItem('token',response.data.token);
+            window.location.href='../html/chatApp.html';
         })
         .catch((err) => {
             console.log(err);
