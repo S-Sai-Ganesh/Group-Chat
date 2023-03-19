@@ -4,14 +4,14 @@ const User = require('../models/user');
 exports.getMessage = async (req,res,next)=>{
     try{
     const {id} = req.user;
-
-    const mesg = await Chat.findAll({include: [
+    const lastId = +req.query.lastId || 0;
+    console.log(lastId);
+    let mesg = await Chat.findAll({offset: lastId,include: [
         {
           model: User,
           attributes: ['id', 'name']
         }
-      ]});
-      
+    ]});
     res.status(200).json({mesg});
     } catch(error) {
         console.log(error);

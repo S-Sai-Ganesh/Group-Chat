@@ -2,6 +2,7 @@ const inputSend = document.getElementById('input-send');
 const token = localStorage.getItem('token');
 const sendMsg = document.getElementById('send-msg');
 const messagesUl = document.getElementById('messages-list');
+let totalMsg = null;
 
 inputSend.addEventListener('submit',(e)=>{
     e.preventDefault();
@@ -11,7 +12,7 @@ inputSend.addEventListener('submit',(e)=>{
     axios.post('http://localhost:4000/message',inputSendObj, { headers: {'Authorization': token}} )
     .then((response) => {
         sendMsg.value = '';
-        addNewLineElement( response.data.mesg, response.data.name );
+        totalMsg++;
     }).catch((err) => {
         console.log(err);
     });
@@ -28,17 +29,21 @@ function addNewLineElement(data,nameParam) {
     messagesUl.appendChild(li);
 }
 
-let totalMsg = null;
 async function getAllMsg(){
     try{
-        const allM = await axios.get('http://localhost:4000/message', { headers: {'Authorization': token}} );
+        // let lsMsg = localStorage.getItem('lsAllMsg');
+        // lsMsg = JSON.parse(lsMsg);
+        // const lsMsg_length = lsMsg.length;
+        const allM = await axios.get(`http://localhost:4000/message?lastId=${totalMsg}`, { headers: {'Authorization': token}} );
         const arr = allM.data.mesg;
-        if(totalMsg!==arr.length){
-            messagesUl.innerHTML = '';
+        if(arr.length>0){
+            totalMsg = totalMsg + arr.length;
+            // let temlsAllMsg = lsMsg.concat(arr);
+            // let tem2lsAllMsg = temlsAllMsg.slice(-10);
+            // localStorage.setItem('lsAllMsg',JSON.stringify(temlsAllMsg));
             arr.forEach(element => {
                 addNewLineElement(element, element.user.name);
             });
-            totalMsg = arr.length;
         }
     }catch(err){
         console.log(err);
@@ -47,12 +52,14 @@ async function getAllMsg(){
 
 window.addEventListener('DOMContentLoaded', async()=>{
     try{
-        const allM = await axios.get('http://localhost:4000/message', { headers: {'Authorization': token}} );
+        const allM = await axios.get(`http://localhost:4000/message`, { headers: {'Authorization': token}} );
         const arr = allM.data.mesg;
         totalMsg = arr.length;
         arr.forEach(element => {
             addNewLineElement(element, element.user.name);
         });
+        // let temArr = arr.slice(-10);
+        // localStorage.setItem('lsAllMsg',JSON.stringify(temArr));
         setInterval(getAllMsg, 2000);
     }catch(err){
         console.log(err);
