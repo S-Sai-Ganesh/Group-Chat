@@ -18,24 +18,42 @@ inputSend.addEventListener('submit',(e)=>{
 
 });
 
-function addNewLineElement(data,name) {
+function addNewLineElement(data,nameParam) {
     const li = document.createElement('h4');
-
+    
     li.appendChild(
-        document.createTextNode( name  + ' :' + data.message + ' ')
+        document.createTextNode( nameParam + ': ' + data.message + ' ')
     );
     
     messagesUl.appendChild(li);
 }
 
+let totalMsg = null;
+async function getAllMsg(){
+    try{
+        const allM = await axios.get('http://localhost:4000/message', { headers: {'Authorization': token}} );
+        const arr = allM.data.mesg;
+        if(totalMsg!==arr.length){
+            messagesUl.innerHTML = '';
+            arr.forEach(element => {
+                addNewLineElement(element, element.user.name);
+            });
+            totalMsg = arr.length;
+        }
+    }catch(err){
+        console.log(err);
+    }
+}
+
 window.addEventListener('DOMContentLoaded', async()=>{
     try{
         const allM = await axios.get('http://localhost:4000/message', { headers: {'Authorization': token}} );
-        const name = allM.data.name;
         const arr = allM.data.mesg;
+        totalMsg = arr.length;
         arr.forEach(element => {
-            addNewLineElement(element,name);
+            addNewLineElement(element, element.user.name);
         });
+        setInterval(getAllMsg, 2000);
     }catch(err){
         console.log(err);
     }

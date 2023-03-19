@@ -1,11 +1,18 @@
 const Chat = require('../models/chat');
+const User = require('../models/user');
 
 exports.getMessage = async (req,res,next)=>{
     try{
-    const {id, name} = req.user;
+    const {id} = req.user;
 
-    const mesg = await Chat.findAll();
-    res.status(200).json({mesg, name});
+    const mesg = await Chat.findAll({include: [
+        {
+          model: User,
+          attributes: ['id', 'name']
+        }
+      ]});
+      
+    res.status(200).json({mesg});
     } catch(error) {
         console.log(error);
         res.status(500).json({error,success: false});

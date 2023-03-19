@@ -6,7 +6,10 @@ exports.postUser = async (req, res, next) => {
     try {
         const {name,email,password,number} = req.body;
 
-        const userExist = await User.findAll({where: {email}});
+        let userExist = await User.findAll({where: {email}});
+        if(!userExist.length){
+            userExist = await User.findAll({where: {number}});
+        }
         
         if(userExist && userExist.length){
             res.status(207).json({ message: 'User already exist, Please Login' });
