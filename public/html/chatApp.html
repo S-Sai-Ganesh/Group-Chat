@@ -11,14 +11,38 @@
         }
         #box11{
             text-align: center;
-            border: 1px solid black;
-            background-color: aquamarine;
+            background-color: transparent;
             width: 100%;
-            position: fixed;
+            position:fixed;
             bottom: 0px;
-            padding: 0%;
-            margin: 0%;
-            vertical-align: middle;
+        }
+        #send-msg{
+            margin:10px;
+            border-radius: 4px;
+            border: 2px solid white;
+        }
+        #messages-list{
+            margin-left: 1%;
+            margin-right: 1%;
+            margin-bottom: 20px;
+            line-break:anywhere;
+        }
+        .msg-left{
+            float: left;
+            background-color: rgb(210,210,210);
+            clear: both;
+            border-radius: 0.5%;
+        }
+        .msg-right{
+            float:right;
+            background-color: wheat;
+            clear: both;
+            border-radius: 0.5%;
+        }
+        #send-btn{
+            background-color: transparent;
+            border: 0;
+            margin-left: -3.5%;
         }
     </style>
     <title>Chat App</title>
@@ -26,14 +50,35 @@
 <body>
     <h1 class="text-center">Chat App</h1>
 
-    <div id="messages-list">
+    <div id="all-groups">
+
+    </div>
+    <input type="button" value="+Create New Group" title="Create Group" id="create-group-btn">
+    <input type="button" value="Join Group" title="Join Group" id="join-group-btn">
+    <input type="button" value="Group Invite Link" title="Group Invite Link" id="invite-btn" hidden>
+    <input type="text" id="invite-link" title="Invite Link" readonly hidden>
+    <div id="create-Group-Div" hidden>
+        <form id="create-Group-Form">
+            <label for="group-name">Enter Group Name</label>
+            <input type="text" name="group-name" title="Enter Group Name" id="new-Group-Name" required>
+            <input type="submit" value="Create Group">
+        </form>
+    </div>
+    <div id="join-group-div" hidden>
+        <form id="join-group-form">
+            <input type="text" id="join-group-input" title="Enter Group Link" required>
+            <input type="submit" value="Join Group">
+        </form>
     </div>
 
-    <div id="box11">
+    <div id="messages-list">
+        <br>
+    </div>
+
+    <div id="box11" hidden>
         <form id="input-send">
-            <br>
-            <input type="text" name="send-msg" id="send-msg" size="75" required>
-            <input type="submit" value="Send">
+            <input type="text" name="send-msg" id="send-msg" size="50%" required>
+            <input type="submit" value="Send" id="send-btn">
         </form>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
