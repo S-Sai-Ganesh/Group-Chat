@@ -9,7 +9,7 @@ exports.getMessage = async (req,res,next)=>{
     const {id} = req.user;
     const lastId = +req.query.lastId || 0;
     const gId = +req.query.gId;
-    // console.log(gId);
+
     let mesg = await Chat.findAll({offset: lastId,include: [
         {
           model: User,
@@ -30,7 +30,7 @@ exports.postMessage = async (req,res,next)=>{
     const {id,name} = req.user;
     const {message} = req.body;
     const gId = req.query.gId;
-console.log('postmsg',gId);
+
     const mesg = await Chat.create( {message, userId:id, groupId:gId});
     res.status(200).json({mesg, name});
     } catch(error) {
@@ -79,7 +79,7 @@ function generateAccessToken(id){
 
 exports.getInvite = async(req,res,next) => {
     const gId = req.query.gId;
-    console.log(gId);
+    
     res.status(200).json({
         secretToken: generateAccessToken(gId)
     });
@@ -87,7 +87,6 @@ exports.getInvite = async(req,res,next) => {
 
 exports.getJoinGroup = async(req,res,next) => {
     const gId = req.query.gId;
-    //Complete Code Here
     const uId = req.user.id;
     const groupmem = await Groupmembers.create({userId:uId, groupId:gId,isAdmin:false});
     res.status(200).json({groupmem,success:true});
@@ -103,7 +102,7 @@ exports.getAddUser = async (req,res,next) => {
         if(!isAdm.dataValues.isAdmin){
             return res.status(401).json({success:false,error:'Is not admin'});
         } 
-        console.log(by,value);
+        
         let userDetails = null;
         if(by=='name'){
             userDetails = await User.findOne({where:{name:value},attributes:['id']});
@@ -133,7 +132,12 @@ exports.getAllU = async (req,res,next)=> {
             where: {groupId:gId},
             attributes: ['userId','isAdmin']
         });
-        res.status(200).json({allUsers,success:true});
+        const uId = req.user.id;
+        const reqUserAdmin = await Groupmembers.findOne({
+            where: { userId: uId, groupId:gId },
+            attributes: ['isAdmin']
+        });
+        res.status(200).json({allUsers,reqUserAdmin,success:true});
     }catch(error){
         console.log(error);
         res.status(500).json({success:false,error});

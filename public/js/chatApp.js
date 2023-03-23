@@ -20,7 +20,7 @@ inputSend.addEventListener('submit',(e)=>{
     .then((response) => {
         sendMsg.value = '';
     }).catch((err) => {
-        console.log(err);
+        console.error(err);
     });
 
 });
@@ -51,7 +51,7 @@ async function getAllMsg(){
             });
         }
     }catch(err){
-        console.log(err);
+        console.error(err);
     }
 }
 
@@ -61,11 +61,13 @@ window.addEventListener('DOMContentLoaded', async()=>{
         const arrG = allG.data.allGroup;
         const allGDiv = document.getElementById('all-groups');
         arrG.forEach(ele=>{
-            console.log(ele);
+
             const li = document.createElement('input');
             li.type = 'button';
             li.value = `${ele.group.gName}`;
             li.addEventListener('click',async()=>{
+                inviteBtn.setAttribute('hidden','hidden');
+                addUserBtn.setAttribute('hidden','hidden');
                 activeGroup = ele.groupId;
                 box11.removeAttribute('hidden');
                 usersBox.removeAttribute('hidden');
@@ -83,8 +85,9 @@ window.addEventListener('DOMContentLoaded', async()=>{
                 });
                 const allU = await axios.get(`http://localhost:4000/message/allUsers?gId=${activeGroup}`, { headers: {'Authorization': token}});
                 const arr2 = allU.data.allUsers;
+                usersList.innerHTML='';
                 arr2.forEach(elem=>{
-                    addNewUserElement(elem,ele.isAdmin,ele.userId);
+                    addNewUserElement(elem,allU.data.reqUserAdmin.isAdmin,ele.userId);
                 })
                 setIntId = setInterval(getAllMsg, 2000);
             })
@@ -92,7 +95,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
         })
 
     }catch(err){
-        console.log(err);
+        console.error(err);
     }
 });
 
@@ -107,12 +110,11 @@ cGroupBtn.onclick = function(){
 cGroupForm.addEventListener('submit', (e)=>{
     e.preventDefault();
     const gName = document.getElementById('new-Group-Name');
-    console.log(typeof gName);
+   
     let gNameObj = { gName:gName.value };
 
     axios.post('http://localhost:4000/message/createGroup', gNameObj, { headers: {'Authorization': token}})
     .then((response) => {
-        console.log(response);
         window.location.reload();
     }).catch((err) => {
         console.error(err);
@@ -149,9 +151,8 @@ joinGroupFrom.addEventListener('submit',async(e)=>{
     const tokenInput = document.getElementById('join-group-input');
     const decodeToken = parseJwt(tokenInput.value);
     const id = +decodeToken.id;
-    console.log('joinGroupForm',id);
     const joinRes = await axios.get(`http:localhost:4000/message/joinGroup?gId=${id}`, { headers: {'Authorization': token}});
-    console.log(joinRes);
+    if(joinRes.status==200) window.location.reload();
 });
 
 addUserBtn.addEventListener('click', ()=>{
@@ -164,14 +165,12 @@ addUserForm.addEventListener('submit',async (e)=>{
     const addUserBy = document.getElementById('add-user-by').value;
     const addUserValue = document.getElementById('add-user-value').value;
     const addUserRes = await axios.get(`http:localhost:4000/message/addUser?by=${addUserBy}&value=${addUserValue}&gId=${activeGroup}`, { headers: {'Authorization': token}});
-    console.log(addUserRes.data.groupmem);
 });
 
 function addNewUserElement(ele,isAd,presentUId){
     const li = document.createElement('h4');
     li.appendChild(document.createTextNode(ele.user.name));
     if(isAd){
-        console.log(ele);
 
         if(presentUId !== ele.userId){
             const remBtn = document.createElement('button');
