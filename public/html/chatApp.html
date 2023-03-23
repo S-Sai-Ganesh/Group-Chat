@@ -57,6 +57,7 @@
     <input type="button" value="Join Group" title="Join Group" id="join-group-btn">
     <input type="button" value="Group Invite Link" title="Group Invite Link" id="invite-btn" hidden>
     <input type="text" id="invite-link" title="Invite Link" readonly hidden>
+    <input type="button" value="Add User" title="Add User" id="add-user-btn" hidden>
     <div id="create-Group-Div" hidden>
         <form id="create-Group-Form">
             <label for="group-name">Enter Group Name</label>
@@ -69,6 +70,23 @@
             <input type="text" id="join-group-input" title="Enter Group Link" required>
             <input type="submit" value="Join Group">
         </form>
+    </div>
+    <div id="add-user-div" hidden>
+        <form id="add-user-form">
+            <label for="add-by">Add User By</label>
+            <select id="add-user-by" name="add-by" required>
+                <option value="name">Name</option>
+                <option value="email">Email</option>
+                <option value="number">Number</option>
+              </select>
+            <input type="text" id="add-user-value" required>
+            <input type="submit" value="Add User">
+        </form>
+    </div>
+
+    <div id="users-box" hidden>
+        <h3>Users List</h3>
+        <div id="users-list"></div>
     </div>
 
     <div id="messages-list">

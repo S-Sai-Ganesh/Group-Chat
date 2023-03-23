@@ -7,6 +7,9 @@ let totalMsg = null;
 let activeGroup = null;
 let setIntId = null;
 const inviteBtn = document.getElementById('invite-btn');
+const addUserBtn = document.getElementById('add-user-btn');
+const usersList = document.getElementById('users-list');
+const usersBox = document.getElementById('users-box');
 
 inputSend.addEventListener('submit',(e)=>{
     e.preventDefault();
@@ -63,29 +66,31 @@ window.addEventListener('DOMContentLoaded', async()=>{
             li.type = 'button';
             li.value = `${ele.group.gName}`;
             li.addEventListener('click',async()=>{
-                activeGroup = ele.id;
+                activeGroup = ele.groupId;
                 box11.removeAttribute('hidden');
-                inviteBtn.removeAttribute('hidden');
+                usersBox.removeAttribute('hidden');
+                if(ele.isAdmin){
+                    inviteBtn.removeAttribute('hidden');
+                    addUserBtn.removeAttribute('hidden');
+                }
                 messagesUl.innerHTML='';
                 clearInterval(setIntId);
-                const allM = await axios.get(`http://localhost:4000/message?gId=${ele.id}`, { headers: {'Authorization': token}} );
+                const allM = await axios.get(`http://localhost:4000/message?gId=${activeGroup}`, { headers: {'Authorization': token}} );
                 const arr = allM.data.mesg;
                 totalMsg = arr.length;
                 arr.forEach(element => {
                     addNewLineElement(element, element.user.name, element.userId);
                 });
+                const allU = await axios.get(`http://localhost:4000/message/allUsers?gId=${activeGroup}`, { headers: {'Authorization': token}});
+                const arr2 = allU.data.allUsers;
+                arr2.forEach(elem=>{
+                    addNewUserElement(elem,ele.isAdmin,ele.userId);
+                })
                 setIntId = setInterval(getAllMsg, 2000);
             })
             allGDiv.appendChild(li);
         })
 
-        // const allM = await axios.get(`http://localhost:4000/message`, { headers: {'Authorization': token}} );
-        // const arr = allM.data.mesg;
-        // totalMsg = arr.length;
-        // arr.forEach(element => {
-        //     addNewLineElement(element, element.user.name, element.userId);
-        // });
-        // setInterval(getAllMsg, 2000);
     }catch(err){
         console.log(err);
     }
@@ -148,3 +153,50 @@ joinGroupFrom.addEventListener('submit',async(e)=>{
     const joinRes = await axios.get(`http:localhost:4000/message/joinGroup?gId=${id}`, { headers: {'Authorization': token}});
     console.log(joinRes);
 });
+
+addUserBtn.addEventListener('click', ()=>{
+    document.getElementById('add-user-div').removeAttribute('hidden');
+});
+
+const addUserForm = document.getElementById('add-user-form');
+addUserForm.addEventListener('submit',async (e)=>{
+    e.preventDefault();
+    const addUserBy = document.getElementById('add-user-by').value;
+    const addUserValue = document.getElementById('add-user-value').value;
+    const addUserRes = await axios.get(`http:localhost:4000/message/addUser?by=${addUserBy}&value=${addUserValue}&gId=${activeGroup}`, { headers: {'Authorization': token}});
+    console.log(addUserRes.data.groupmem);
+});
+
+function addNewUserElement(ele,isAd,presentUId){
+    const li = document.createElement('h4');
+    li.appendChild(document.createTextNode(ele.user.name));
+    if(isAd){
+        console.log(ele);
+
+        if(presentUId !== ele.userId){
+            const remBtn = document.createElement('button');
+            remBtn.innerHTML = 'X';
+            remBtn.title = 'Remove User';
+            remBtn.addEventListener('click', async () => {
+                console.log('remBtn>>',ele.userId);
+                const removed = await axios.get(`http:localhost:4000/message/removeU?id=${ele.userId}&gId=${activeGroup}`);
+                window.location.reload();
+            })
+            li.appendChild(remBtn);
+        }
+        if(ele.isAdmin){
+            const alreadyAdmin = document.createElement('h6').appendChild(document.createTextNode(' --Admin'));
+            li.appendChild(alreadyAdmin);
+        } else {
+            const makeAdmin = document.createElement('button');
+            makeAdmin.innerHTML = 'Make Admin';
+            makeAdmin.addEventListener('click', async ()=>{
+                console.log('makeAdmin',ele.userId);
+                const admined = await axios.get(`http://localhost:4000/message/makeA?id=${ele.userId}&gId=${activeGroup}`);
+                window.location.reload();
+            })
+            li.appendChild(makeAdmin);
+        }
+    }
+    usersList.appendChild(li);
+}
