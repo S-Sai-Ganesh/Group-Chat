@@ -25,20 +25,19 @@ const accessLogStream = fs.createWriteStream(
 );
 
 const app = express();
-app.use(helmet());
+const httpServer = require("http").createServer(app);
+const socketio = require("socket.io")
+const io = socketio(httpServer);
 app.use(cors({
-    origin : '*',
+    origin : ['*','http://127.0.0.1:5500'],
     methods: ['GET', 'POST']
 }));
+app.use(helmet());
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use(bodyParser.json());
 
 app.use('/user', userRoutes);
 app.use('/message', messageRoutes);
-app.use((req,res)=>{
-    console.log('url>>', req.url);
-    res.sendFile(path.join(__dirname, `public/${req.url}`));
-});
 
 User.hasMany(Chat);
 Chat.belongsTo(User);
@@ -59,7 +58,7 @@ sequelize
     .sync()
     // .sync({ force: true })
     .then(res => {
-        app.listen(process.env.PORT_DEFAULT, (err) => {
+        httpServer.listen(process.env.PORT_DEFAULT, (err) => {
             if (err) console.log(err);
             console.log('Server is listening for requests');
         });
@@ -67,3 +66,9 @@ sequelize
     .catch(err => {
         console.log(err);
     });
+
+io.on('connection',socket=>{
+    socket.on('send-chat-message', message => {
+        socket.broadcast.emit('chat-message', message)
+    });
+});
