@@ -11,6 +11,15 @@ const addUserBtn = document.getElementById('add-user-btn');
 const usersList = document.getElementById('users-list');
 const usersBox = document.getElementById('users-box');
 
+const socket = io('http://3.239.162.206:4000');
+socket.on('connect',()=>{
+    console.log(socket.id);
+});
+
+socket.on('chat-message', data => {
+    getAllMsg(data);
+});
+
 inputSend.addEventListener('submit',(e)=>{
     e.preventDefault();
 
@@ -18,6 +27,8 @@ inputSend.addEventListener('submit',(e)=>{
 
     axios.post(`http://3.239.162.206:4000/message?gId=${activeGroup}`,inputSendObj, { headers: {'Authorization': token}} )
     .then((response) => {
+        socket.emit('send-chat-message', activeGroup);
+        addNewLineElement(response.data.mesg,response.data.name,response.data.mesg.userId);
         sendMsg.value = '';
     }).catch((err) => {
         console.error(err);
@@ -40,9 +51,9 @@ function addNewLineElement(data,nameParam,idParam) {
     messagesUl.appendChild(li);
 }
 
-async function getAllMsg(){
+async function getAllMsg(gId){
     try{
-        const allM = await axios.get(`http://3.239.162.206:4000/message?lastId=${totalMsg}&gId=${activeGroup}`, { headers: {'Authorization': token}} );
+        const allM = await axios.get(`http://3.239.162.206:4000/message?lastId=${totalMsg}&gId=${gId}`, { headers: {'Authorization': token}} );
         const arr = allM.data.mesg;
         if(arr.length>0){
             totalMsg = totalMsg + arr.length;
@@ -76,7 +87,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
                     addUserBtn.removeAttribute('hidden');
                 }
                 messagesUl.innerHTML='';
-                clearInterval(setIntId);
+                // clearInterval(setIntId);
                 const allM = await axios.get(`http://3.239.162.206:4000/message?gId=${activeGroup}`, { headers: {'Authorization': token}} );
                 const arr = allM.data.mesg;
                 totalMsg = arr.length;
@@ -89,7 +100,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
                 arr2.forEach(elem=>{
                     addNewUserElement(elem,allU.data.reqUserAdmin.isAdmin,ele.userId);
                 })
-                setIntId = setInterval(getAllMsg, 2000);
+                // setIntId = setInterval(getAllMsg, 2000);
             })
             allGDiv.appendChild(li);
         })
@@ -178,7 +189,7 @@ function addNewUserElement(ele,isAd,presentUId){
             remBtn.title = 'Remove User';
             remBtn.addEventListener('click', async () => {
                 console.log('remBtn>>',ele.userId);
-                const removed = await axios.get(`http://3.239.162.206:4000/message/removeU?id=${ele.userId}&gId=${activeGroup}`);
+                const removed = await axios.get(`http://3.239.162.206:4000/message/removeU?id=${ele.userId}&gId=${activeGroup}`, { headers: {'Authorization': token}});
                 window.location.reload();
             })
             li.appendChild(remBtn);
@@ -191,7 +202,7 @@ function addNewUserElement(ele,isAd,presentUId){
             makeAdmin.innerHTML = 'Make Admin';
             makeAdmin.addEventListener('click', async ()=>{
                 console.log('makeAdmin',ele.userId);
-                const admined = await axios.get(`http://3.239.162.206:4000/message/makeA?id=${ele.userId}&gId=${activeGroup}`);
+                const admined = await axios.get(`http://3.239.162.206:4000/message/makeA?id=${ele.userId}&gId=${activeGroup}`, { headers: {'Authorization': token}});
                 window.location.reload();
             })
             li.appendChild(makeAdmin);
@@ -199,3 +210,30 @@ function addNewUserElement(ele,isAd,presentUId){
     }
     usersList.appendChild(li);
 }
+
+const fileInput = document.getElementById('send-file-form');
+fileInput.addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    console.log('clicked');
+    const selectedFile = document.getElementById('send-file');
+
+    const formData = new FormData();
+    for(let i =0; i < selectedFile.files.length; i++) {
+        formData.append("files", selectedFile.files[i]);
+    }
+
+    fetch("http://3.239.162.206:4000/message/saveFile", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          "Authorization":token,
+          "groupId": activeGroup
+        }
+    })
+    .then(response=>{
+        socket.emit('send-chat-message',activeGroup);
+        addNewLineElement(response.data.mesg,response.data.name,response.data.mesg.userId);
+    }).catch(err=>{
+        console.error(err);
+    });
+});

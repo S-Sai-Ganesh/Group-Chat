@@ -3,6 +3,10 @@ const User = require('../models/user');
 const Group = require('../models/group');
 const Groupmembers = require('../models/gmember');
 const jwt = require('jsonwebtoken');
+const s3 = require('../services/S3services');
+const formidable = require('formidable');
+const path = require('path');
+const fs = require('fs');
 
 exports.getMessage = async (req,res,next)=>{
     try{
@@ -98,7 +102,7 @@ exports.getAddUser = async (req,res,next) => {
         const value = req.query.value;
         const gId = req.query.gId;
         const {id} = req.user;
-        const isAdm = await Groupmembers.findOne({where:{userId:id},attributes:['isAdmin']});
+        const isAdm = await Groupmembers.findOne({where:{userId:id,groupId:gId},attributes:['isAdmin']});
         if(!isAdm.dataValues.isAdmin){
             return res.status(401).json({success:false,error:'Is not admin'});
         } 
@@ -148,6 +152,11 @@ exports.getRemU = async(req,res,next)=>{
     try{
         const uId = req.query.id;
         const gId = req.query.gId;
+        const id = req.user.id;
+        const isAdm = await Groupmembers.findOne({where:{userId:id,groupId:gId},attributes:['isAdmin']});
+        if(!isAdm.dataValues.isAdmin){
+            return res.status(401).json({success:false,error:'Is not admin'});
+        }
 
         const remU = await Groupmembers.destroy({
             where:{groupId:gId,userId:uId}
@@ -163,6 +172,11 @@ exports.getMakeA = async(req,res,next)=>{
     try{
         const uId = req.query.id;
         const gId = req.query.gId;
+        const id = req.user.id;
+        const isAdm = await Groupmembers.findOne({where:{userId:id,groupId:gId},attributes:['isAdmin']});
+        if(!isAdm.dataValues.isAdmin){
+            return res.status(401).json({success:false,error:'Is not admin'});
+        }
 
         const isAdmi = await Groupmembers.update({isAdmin:true},{
             where:{groupId:gId,userId:uId}
@@ -171,5 +185,33 @@ exports.getMakeA = async(req,res,next)=>{
     }catch(error){
         console.log(error);
         res.status(500).json({error,success:false});
+    }
+}
+
+exports.postSaveFile = async(req,res,next)=>{
+    try{
+        const gId = req.header('groupId');
+        const {id,name} = req.user;
+        const pathup = path.join(__dirname, '../uploads');
+        const form = formidable({ multiples: false,uploadDir : pathup,allowEmptyFiles :false,keepExtensions :true });
+        form.parse(req, async(err, fields, files) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            const fileName = `${gId}!File${req.user.id}!File${files.files.originalFilename}`;
+            const rawdata = fs.readFileSync(files.files.filepath);
+            const fileURL = await s3.uploadToS3(rawdata, fileName);
+            const mesg = await Chat.create({
+                message:fileURL,
+                userId: id,
+                groupId: gId
+            });
+            res.status(200).json({mesg,name,success:true,fileName});
+        });
+
+    }catch(error){
+        console.error(error);
+        res.status(500).json({success:false,error:error.message});
     }
 }
