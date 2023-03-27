@@ -40,9 +40,17 @@
             border-radius: 0.5%;
         }
         #send-btn{
+            position: right;
             background-color: transparent;
             border: 0;
-            margin-left: -3.5%;
+            /* margin-left: -3.5%; */
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .image-field{
+            height: 20px;
+            width:auto;
         }
     </style>
     <title>Chat App</title>
@@ -95,12 +103,19 @@
 
     <div id="box11" hidden>
         <form id="input-send">
-            <input type="text" name="send-msg" id="send-msg" size="50%" autocomplete="off" required>
+            <input type="text" name="send-msg" id="send-msg" width="50%" autocomplete="off" required>
             <input type="submit" value="Send" id="send-btn">
+        </form>
+        <form id="send-file-form"  enctype="multipart/form-data"> 
+            <label>
+                <input type="file" id="send-file" name="sendfile">
+                <img src="image.png" class='image-field'>
+            </label>
+            <button type="submit">Submit</button>
         </form>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
-    <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+    <script src="http://3.239.162.206:4000/socket.io/socket.io.js"></script>
     <script src="../js/chatApp.js"></script>
 </body>
 </html>

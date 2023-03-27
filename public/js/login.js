@@ -11,7 +11,7 @@ function onSubmit(e) {
         password: password.value
     }
 
-    axios.post('http://localhost:4000/user/login', loginObject)
+    axios.post('http://3.239.162.206:4000/user/login', loginObject)
         .then((response) => {
             alert(response.data.message);
             localStorage.setItem('token',response.data.token);

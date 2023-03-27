@@ -21,8 +21,10 @@ router.get('/addUser',userAuth.authenticate, messageController.getAddUser);
 
 router.get('/allUsers', userAuth.authenticate, messageController.getAllU);
 
-router.get('/removeU', messageController.getRemU);
+router.get('/removeU', userAuth.authenticate, messageController.getRemU);
 
-router.get('/makeA', messageController.getMakeA);
+router.get('/makeA', userAuth.authenticate, messageController.getMakeA);
+
+router.post('/saveFile', userAuth.authenticate, messageController.postSaveFile);
 
 module.exports=router;
