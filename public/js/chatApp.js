@@ -11,7 +11,12 @@ const addUserBtn = document.getElementById('add-user-btn');
 const usersList = document.getElementById('users-list');
 const usersBox = document.getElementById('users-box');
 
-const socket = io('http://3.239.162.206:4000');
+if(!token){
+    alert('Please login to continue');
+    window.location.href='../html/login.html';
+}
+
+const socket = io('http://localhost:4000');
 socket.on('connect',()=>{
     console.log(socket.id);
 });
@@ -25,7 +30,7 @@ inputSend.addEventListener('submit',(e)=>{
 
     let inputSendObj = { message: sendMsg.value }
 
-    axios.post(`http://3.239.162.206:4000/message?gId=${activeGroup}`,inputSendObj, { headers: {'Authorization': token}} )
+    axios.post(`http://localhost:4000/message?gId=${activeGroup}`,inputSendObj, { headers: {'Authorization': token}} )
     .then((response) => {
         socket.emit('send-chat-message', activeGroup);
         addNewLineElement(response.data.mesg,response.data.name,response.data.mesg.userId);
@@ -53,7 +58,7 @@ function addNewLineElement(data,nameParam,idParam) {
 
 async function getAllMsg(gId){
     try{
-        const allM = await axios.get(`http://3.239.162.206:4000/message?lastId=${totalMsg}&gId=${gId}`, { headers: {'Authorization': token}} );
+        const allM = await axios.get(`http://localhost:4000/message?lastId=${totalMsg}&gId=${gId}`, { headers: {'Authorization': token}} );
         const arr = allM.data.mesg;
         if(arr.length>0){
             totalMsg = totalMsg + arr.length;
@@ -68,7 +73,7 @@ async function getAllMsg(gId){
 
 window.addEventListener('DOMContentLoaded', async()=>{
     try{
-        const allG = await axios.get('http://3.239.162.206:4000/message/allGroup', { headers: {'Authorization': token}} );
+        const allG = await axios.get('http://localhost:4000/message/allGroup', { headers: {'Authorization': token}} );
         const arrG = allG.data.allGroup;
         const allGDiv = document.getElementById('all-groups');
         arrG.forEach(ele=>{
@@ -88,13 +93,13 @@ window.addEventListener('DOMContentLoaded', async()=>{
                 }
                 messagesUl.innerHTML='';
                 // clearInterval(setIntId);
-                const allM = await axios.get(`http://3.239.162.206:4000/message?gId=${activeGroup}`, { headers: {'Authorization': token}} );
+                const allM = await axios.get(`http://localhost:4000/message?gId=${activeGroup}`, { headers: {'Authorization': token}} );
                 const arr = allM.data.mesg;
                 totalMsg = arr.length;
                 arr.forEach(element => {
                     addNewLineElement(element, element.user.name, element.userId);
                 });
-                const allU = await axios.get(`http://3.239.162.206:4000/message/allUsers?gId=${activeGroup}`, { headers: {'Authorization': token}});
+                const allU = await axios.get(`http://localhost:4000/message/allUsers?gId=${activeGroup}`, { headers: {'Authorization': token}});
                 const arr2 = allU.data.allUsers;
                 usersList.innerHTML='';
                 arr2.forEach(elem=>{
@@ -124,7 +129,7 @@ cGroupForm.addEventListener('submit', (e)=>{
    
     let gNameObj = { gName:gName.value };
 
-    axios.post('http://3.239.162.206:4000/message/createGroup', gNameObj, { headers: {'Authorization': token}})
+    axios.post('http://localhost:4000/message/createGroup', gNameObj, { headers: {'Authorization': token}})
     .then((response) => {
         window.location.reload();
     }).catch((err) => {
@@ -135,7 +140,7 @@ cGroupForm.addEventListener('submit', (e)=>{
 inviteBtn.addEventListener('click', async()=>{
     const inputInvite = document.getElementById('invite-link')
     inputInvite.removeAttribute('hidden');
-    const inviteLink = await axios.get(`http://3.239.162.206:4000/message/getInvite?gId=${activeGroup}`, { headers: {'Authorization': token}});
+    const inviteLink = await axios.get(`http://localhost:4000/message/getInvite?gId=${activeGroup}`, { headers: {'Authorization': token}});
     const secretToken = inviteLink.data.secretToken;
     inputInvite.value = `${secretToken}`;
 });
@@ -146,23 +151,11 @@ joinGroupBtn.addEventListener('click',()=>{
     joinGroupDiv.removeAttribute('hidden');
 });
 
-function parseJwt (token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
-}
-
 const joinGroupFrom = document.getElementById('join-group-form');
 joinGroupFrom.addEventListener('submit',async(e)=>{
     e.preventDefault();
     const tokenInput = document.getElementById('join-group-input');
-    const decodeToken = parseJwt(tokenInput.value);
-    const id = +decodeToken.id;
-    const joinRes = await axios.get(`http://3.239.162.206:4000/message/joinGroup?gId=${id}`, { headers: {'Authorization': token}});
+    const joinRes = await axios.get(`http://localhost:4000/message/joinGroup?gId=${tokenInput.value}`, { headers: {'Authorization': token}});
     if(joinRes.status==200) window.location.reload();
 });
 
@@ -175,7 +168,7 @@ addUserForm.addEventListener('submit',async (e)=>{
     e.preventDefault();
     const addUserBy = document.getElementById('add-user-by').value;
     const addUserValue = document.getElementById('add-user-value').value;
-    const addUserRes = await axios.get(`http://3.239.162.206:4000/message/addUser?by=${addUserBy}&value=${addUserValue}&gId=${activeGroup}`, { headers: {'Authorization': token}});
+    const addUserRes = await axios.get(`http://localhost:4000/message/addUser?by=${addUserBy}&value=${addUserValue}&gId=${activeGroup}`, { headers: {'Authorization': token}});
 });
 
 function addNewUserElement(ele,isAd,presentUId){
@@ -189,7 +182,7 @@ function addNewUserElement(ele,isAd,presentUId){
             remBtn.title = 'Remove User';
             remBtn.addEventListener('click', async () => {
                 console.log('remBtn>>',ele.userId);
-                const removed = await axios.get(`http://3.239.162.206:4000/message/removeU?id=${ele.userId}&gId=${activeGroup}`, { headers: {'Authorization': token}});
+                const removed = await axios.get(`http://localhost:4000/message/removeU?id=${ele.userId}&gId=${activeGroup}`, { headers: {'Authorization': token}});
                 window.location.reload();
             })
             li.appendChild(remBtn);
@@ -202,7 +195,7 @@ function addNewUserElement(ele,isAd,presentUId){
             makeAdmin.innerHTML = 'Make Admin';
             makeAdmin.addEventListener('click', async ()=>{
                 console.log('makeAdmin',ele.userId);
-                const admined = await axios.get(`http://3.239.162.206:4000/message/makeA?id=${ele.userId}&gId=${activeGroup}`, { headers: {'Authorization': token}});
+                const admined = await axios.get(`http://localhost:4000/message/makeA?id=${ele.userId}&gId=${activeGroup}`, { headers: {'Authorization': token}});
                 window.location.reload();
             })
             li.appendChild(makeAdmin);
@@ -222,7 +215,7 @@ fileInput.addEventListener('submit',async(e)=>{
         formData.append("files", selectedFile.files[i]);
     }
 
-    fetch("http://3.239.162.206:4000/message/saveFile", {
+    fetch("http://localhost:4000/message/saveFile", {
         method: 'POST',
         body: formData,
         headers: {
@@ -236,4 +229,10 @@ fileInput.addEventListener('submit',async(e)=>{
     }).catch(err=>{
         console.error(err);
     });
+});
+
+const logout = document.getElementById('logout');
+logout.addEventListener('click',()=>{
+    localStorage.clear();
+    window.location.href='../html/login.html';
 });

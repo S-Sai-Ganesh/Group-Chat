@@ -26,7 +26,7 @@ const accessLogStream = fs.createWriteStream(
 
 const app = express();
 const httpServer = require("http").createServer(app);
-const socketio = require("socket.io")
+const socketio = require("socket.io");
 const io = socketio(httpServer);
 app.use(cors({
     origin : ['*','http://127.0.0.1:5500'],

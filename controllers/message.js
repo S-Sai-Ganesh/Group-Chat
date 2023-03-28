@@ -7,6 +7,9 @@ const s3 = require('../services/S3services');
 const formidable = require('formidable');
 const path = require('path');
 const fs = require('fs');
+const { Op } = require('sequelize');
+var CronJob = require('cron').CronJob;
+const sequelize = require('../util/database');
 
 exports.getMessage = async (req,res,next)=>{
     try{
@@ -92,7 +95,8 @@ exports.getInvite = async(req,res,next) => {
 exports.getJoinGroup = async(req,res,next) => {
     const gId = req.query.gId;
     const uId = req.user.id;
-    const groupmem = await Groupmembers.create({userId:uId, groupId:gId,isAdmin:false});
+    const groupId = jwt.verify(gId, process.env.TOKEN_SECRET);
+    const groupmem = await Groupmembers.create({userId:uId, groupId:groupId.id,isAdmin:false});
     res.status(200).json({groupmem,success:true});
 }
 
@@ -207,6 +211,10 @@ exports.postSaveFile = async(req,res,next)=>{
                 userId: id,
                 groupId: gId
             });
+            fs.unlink(files.files.filepath,function(err){
+                if(err) return console.log(err);
+                console.log('file deleted successfully');
+            });
             res.status(200).json({mesg,name,success:true,fileName});
         });
 
@@ -215,3 +223,21 @@ exports.postSaveFile = async(req,res,next)=>{
         res.status(500).json({success:false,error:error.message});
     }
 }
+
+var job = new CronJob(
+    '0 2 * * *',
+    async function () {
+        try{
+            console.log(new Date());
+
+            await sequelize.query(`insert into groupchat.archivedchats select * from groupchat.chats where updatedAt <= now() - interval 1 day`);
+            
+            await Chat.destroy({
+                where: { updatedAt: {[Op.lte]: new Date(Date.now() - (60*60*24*1000))} }
+            });
+        } catch(error) {
+            console.log(error);
+        }
+    }
+);
+job.start();

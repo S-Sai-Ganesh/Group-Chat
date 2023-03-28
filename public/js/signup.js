@@ -12,7 +12,7 @@ function onSubmit(e) {
     };
 
     axios
-        .post('http://3.239.162.206:4000/user/signup', signupObject)
+        .post('http://localhost:4000/user/signup', signupObject)
         .then((response) => {
             console.log(response.data.message);
             alert(response.data.message);
